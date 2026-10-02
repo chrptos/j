@@ -2,7 +2,7 @@
 
 ### Issue
 
-<!-- 例：- Closes #1 -->
+<!-- develop向けの例：- #1。main向けで自動クローズする場合：- Closes #1 -->
 
 ### What?
 
