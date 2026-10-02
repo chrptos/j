@@ -16,6 +16,8 @@ Git Flowを採用する。
 
 通常の作業では、Issueを作成してから`develop`を元にブランチを作る。
 
+Issueは共通テンプレートを使い、目的・対応内容・完了条件を記載する。
+
 ```text
 feature/#<Issue番号>_<動作>_<内容>
 ```
@@ -48,5 +50,6 @@ git switch -c 'feature/#1_add_ec-requirements' develop
 - コミットメッセージに変更内容とIssue番号を記載する。例：`docs: add EC requirements (#1)`。
 - 通常の作業は`develop`向けにPRを作成する。
 - PRには変更内容、確認結果、関連Issueを記載する。
+- PRの本文には共通テンプレートを使う。
 - リリース時は`release/...`を`main`と`develop`へマージし、`main`にバージョンタグを付ける。
 - 緊急修正は`hotfix/...`を`main`と`develop`へ反映する。進行中のリリースがある場合は、リリースにも修正を反映する。
