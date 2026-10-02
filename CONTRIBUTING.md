@@ -49,8 +49,9 @@ git switch -c 'feature/#1_add_ec-requirements' develop
 - コミットには、そのIssueに関係する変更を含める。
 - コミットメッセージに変更内容とIssue番号を記載する。例：`docs: add EC requirements (#1)`。
 - 通常の作業は`develop`向けにPRを作成する。
-- PRにはIssue・What・Why・How・Decisions・Before / After・Other・Refsを記載する。各項目の本文は箇条書きにし、箇条書きの項目間には空行を入れない。
+- PRにはIssue・What・Why・How・Decisions・Evidence・Other・Refsを記載する。各項目の本文は箇条書きにし、箇条書きの項目間には空行を入れない。
 - Decisionsには判断に関わる会話を、箇条書きの項目内に発言者付きの引用ブロックで記載する。実際の発言を引用し、省略は「…」、要約は要約と明記する。Slackなどの会話には参照可能な会話リンクを添える。未合意の提案は合意済みとして記載しない。
+- Evidenceには画像・動画・入出力例・図などを記載する。必要に応じてUI・API・状態遷移のBefore / Afterを小見出しで整理し、該当する内容がなければ省略する。
 - Otherにはテスト方法と結果、未確認事項などを記載する。
 - Refsには参考にした資料やリンクを記載する。
 - PRの本文には共通テンプレートを使う。
