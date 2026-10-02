@@ -49,7 +49,7 @@ git switch -c 'feature/#1_add_ec-requirements' develop
 - コミットには、そのIssueに関係する変更を含める。
 - コミットメッセージに変更内容とIssue番号を記載する。例：`docs: add EC requirements (#1)`。
 - 通常の作業は`develop`向けにPRを作成する。
-- PRには変更内容、確認結果、関連Issueを記載する。
+- PRにはIssue・概要・レビューポイント・チェックリスト・参考資料・その他を記載する。
 - PRの本文には共通テンプレートを使う。
 - リリース時は`release/...`を`main`と`develop`へマージし、`main`にバージョンタグを付ける。
 - 緊急修正は`hotfix/...`を`main`と`develop`へ反映する。進行中のリリースがある場合は、リリースにも修正を反映する。
