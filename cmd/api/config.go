@@ -4,22 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/chrptos/j/internal/database"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type settings struct {
-	HTTPPort   int           `env:"HTTP_PORT,required"`
-	DBHost     string        `env:"DB_HOST,required,notEmpty"`
-	DBPort     int           `env:"DB_PORT,required"`
-	DBUser     string        `env:"POSTGRES_USER,required,notEmpty"`
-	DBPassword string        `env:"POSTGRES_PASSWORD,required,notEmpty"`
-	DBName     string        `env:"POSTGRES_DB,required,notEmpty"`
-	SSLMode    string        `env:"DB_SSLMODE,required,notEmpty"`
+	HTTPPort   int `env:"HTTP_PORT,required"`
+	Connection database.Connection
 	MaxConns   int32         `env:"DB_MAX_CONNS,required"`
 	MinConns   int32         `env:"DB_MIN_CONNS,required"`
 	ReadHeader time.Duration `env:"HTTP_READ_HEADER_TIMEOUT,required"`
@@ -58,10 +53,8 @@ func loadConfig() (config, error) {
 			return c, errors.New("invalid environment configuration")
 		}
 	}
-	for key, port := range map[string]int{"HTTP_PORT": c.HTTPPort, "DB_PORT": c.DBPort} {
-		if port < 1 || port > 65535 {
-			return c, fmt.Errorf("%s must be a port between 1 and 65535", key)
-		}
+	if c.HTTPPort < 1 || c.HTTPPort > 65535 {
+		return c, errors.New("HTTP_PORT must be between 1 and 65535")
 	}
 	if c.MaxConns < 1 || c.MinConns < 0 || c.MinConns > c.MaxConns {
 		return c, errors.New("DB connection counts must satisfy 0 <= DB_MIN_CONNS <= DB_MAX_CONNS and DB_MAX_CONNS >= 1")
@@ -78,9 +71,11 @@ func loadConfig() (config, error) {
 		}
 	}
 	c.Addr = net.JoinHostPort("", strconv.Itoa(c.HTTPPort))
-	u := url.URL{Scheme: "postgres", Host: net.JoinHostPort(c.DBHost, strconv.Itoa(c.DBPort)), User: url.UserPassword(c.DBUser, c.DBPassword), Path: "/" + c.DBName}
-	u.RawQuery = url.Values{"sslmode": {c.SSLMode}}.Encode()
-	db, err := pgxpool.ParseConfig(u.String())
+	databaseURL, err := c.Connection.URL()
+	if err != nil {
+		return c, err
+	}
+	db, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		return c, errors.New("invalid database configuration")
 	}

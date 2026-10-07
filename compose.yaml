@@ -29,6 +29,20 @@ services:
       db:
         condition: service_healthy
     stop_grace_period: ${API_STOP_GRACE_PERIOD:?}
+  migrate:
+    build: .
+    profiles: ["tools"]
+    entrypoint: ["/migrate"]
+    environment:
+      DB_HOST: ${DB_HOST:?}
+      DB_PORT: ${DB_PORT:?}
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+      DB_SSLMODE: ${DB_SSLMODE:?}
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: postgres:18.3-bookworm@sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba
     environment:
