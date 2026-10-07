@@ -7,15 +7,15 @@
 ## レスポンス形式
 
 - RFC 9457のProblem Detailsを使い、Content-Typeを`application/problem+json`にする。
-- typeはエラー種類を表す固定URIとする。例の`urn:j:problem:insufficient-stock`は識別子であり、取得用URLではない。
+- typeはエラー種類を表す固定URIとし、この設計書の分類へのHTTPSリンクを使う。
 - statusは実際のHTTPステータスと一致させる。
-- codeは集計用の固定コード、detailは利用者向けの説明、traceIdはログとの照合用とする。
+- codeは集計用の固定コード、detailは利用者向けの説明、traceIdはリクエストごとに生成するUUIDで、ログとの照合用とする。
 - instanceは発生したエラーを識別するURIとし、traceIdから生成する。
 - 入力不正ではerrorsにfield・code・messageを返す。SQL・接続先・スタックトレース・入力値は返さない。
 
 ```json
 {
-  "type": "urn:j:problem:insufficient-stock",
+  "type": "https://github.com/chrptos/j/blob/develop/docs/design/errors.md#insufficient-stock",
   "title": "在庫不足",
   "status": 409,
   "detail": "指定された数量の在庫がありません",
@@ -29,18 +29,18 @@
 
 | 状況 | HTTP | code | 試験時の分類 |
 | --- | --- | --- | --- |
-| JSON・型・範囲・検索条件が不正 | 400 | INVALID_ARGUMENT | 入力不正 |
-| 対象商品なし | 404 | PRODUCT_NOT_FOUND | 業務上の拒否 |
-| URLなし | 404 | ENDPOINT_NOT_FOUND | 入力不正 |
-| 許可されないHTTPメソッド | 405 | METHOD_NOT_ALLOWED | 入力不正 |
-| 未対応のContent-Type | 415 | UNSUPPORTED_MEDIA_TYPE | 入力不正 |
-| 在庫不足 | 409 | INSUFFICIENT_STOCK | 業務上の拒否 |
-| 利用者単位のレート制限（導入時） | 429 | RATE_LIMITED | 負荷制御による拒否 |
-| サービス全体の同時実行上限（導入時） | 503 | SERVICE_OVERLOADED | システム側の拒否 |
-| DB接続不可・プール取得タイムアウト | 503 | DATABASE_UNAVAILABLE | システム障害 |
-| DBクエリ・ロック待ちタイムアウト | 503 | DATABASE_TIMEOUT | システム障害 |
-| デッドロック・直列化失敗で処理を中断 | 503 | TRANSACTION_ABORTED | システム障害 |
-| 予期しない例外・データ整合性違反 | 500 | INTERNAL_ERROR | システム障害 |
+| JSON・型・範囲・検索条件が不正 | 400 | <a id="invalid-argument"></a>INVALID_ARGUMENT | 入力不正 |
+| 対象商品なし | 404 | <a id="product-not-found"></a>PRODUCT_NOT_FOUND | 業務上の拒否 |
+| URLなし | 404 | <a id="endpoint-not-found"></a>ENDPOINT_NOT_FOUND | 入力不正 |
+| 許可されないHTTPメソッド | 405 | <a id="method-not-allowed"></a>METHOD_NOT_ALLOWED | 入力不正 |
+| 未対応のContent-Type | 415 | <a id="unsupported-media-type"></a>UNSUPPORTED_MEDIA_TYPE | 入力不正 |
+| 在庫不足 | 409 | <a id="insufficient-stock"></a>INSUFFICIENT_STOCK | 業務上の拒否 |
+| 利用者単位のレート制限（導入時） | 429 | <a id="rate-limited"></a>RATE_LIMITED | 負荷制御による拒否 |
+| サービス全体の同時実行上限（導入時） | 503 | <a id="service-overloaded"></a>SERVICE_OVERLOADED | システム側の拒否 |
+| DB接続不可・プール取得タイムアウト | 503 | <a id="database-unavailable"></a>DATABASE_UNAVAILABLE | システム障害 |
+| DBクエリ・ロック待ちタイムアウト | 503 | <a id="database-timeout"></a>DATABASE_TIMEOUT | システム障害 |
+| デッドロック・直列化失敗で処理を中断 | 503 | <a id="transaction-aborted"></a>TRANSACTION_ABORTED | システム障害 |
+| 予期しない例外・データ整合性違反 | 500 | <a id="internal-error"></a>INTERNAL_ERROR | システム障害 |
 
 - 入力検証後に在庫更新を行う。障害を在庫不足として扱わない。
 - 商品が存在するのに在庫行が欠けている場合は整合性違反とする。

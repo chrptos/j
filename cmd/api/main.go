@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/chrptos/j/internal/health"
+	"github.com/chrptos/j/internal/api"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -40,7 +40,7 @@ func run() error {
 		return errors.New("database startup check failed")
 	}
 	server := &http.Server{
-		Addr: cfg.Addr, Handler: health.Handler(pool, cfg.Health),
+		Addr: cfg.Addr, Handler: api.Handler(pool, cfg.Health, cfg.Acquire, cfg.Query),
 		ReadHeaderTimeout: cfg.ReadHeader, ReadTimeout: cfg.Read,
 		WriteTimeout: cfg.Write, IdleTimeout: cfg.Idle,
 	}

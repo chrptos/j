@@ -33,6 +33,16 @@ docker compose --env-file .env.local run --build --rm migrate up
 - SQLは`migrations/`で管理し、ビルド時に実行ファイルへ埋め込む。
 - 商品と在庫の作成は同じトランザクションで行う。外部キーだけでは在庫行の存在は保証されない。
 
+## 商品検索
+
+```sh
+curl -fsS 'http://localhost:8080/products?keyword=Go&sort=price_asc&limit=20&offset=0'
+```
+
+- カテゴリ・価格の絞り込みは`categoryId`・`minPrice`・`maxPrice`で指定する。
+- 対象がない場合は`items: []`。試験データは別途投入する。
+- 接続取得・DB処理の上限は`DB_ACQUIRE_TIMEOUT`・`DB_QUERY_TIMEOUT`で設定する。
+
 ## テスト
 
 Go 1.26.5で実行する。
@@ -41,7 +51,7 @@ Go 1.26.5で実行する。
 go test -race ./...
 go vet ./...
 # Dockerが必要なDB統合テスト
-go test -race -tags=integration ./migrations
+go test -race -tags=integration ./internal/product ./migrations
 ```
 
 ## 起動確認
