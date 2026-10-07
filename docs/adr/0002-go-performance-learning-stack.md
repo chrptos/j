@@ -18,8 +18,8 @@
 | 環境設定 | caarlos0/env v11.4.1 | 環境変数の型変換・必須チェックを構造体にまとめる |
 | DB | PostgreSQL | SQL・実行計画・更新競合を実験する |
 | DBアクセス・プール | pgx/v5・pgxpool | SQLとトランザクションを明示し、接続待ちを観測する |
-| マイグレーション | golang-migrate/migrate | SQLファイルでスキーマ変更を再現する |
-| テスト | testing・httptest・Testcontainers for Go | HTTPと実PostgreSQLの正常系・競合を検証する |
+| マイグレーション | golang-migrate/migrate v4.20.1 | SQLファイルでスキーマ変更を再現する |
+| テスト | testing・httptest・Testcontainers for Go v0.44.0 | HTTPと実PostgreSQLの正常系・競合を検証する |
 | 負荷試験 | k6 | 同じ条件で6種類の試験を実行する |
 | メトリクス | prometheus/client_golang・Prometheus・Grafana | API・Goランタイム・接続プールを観測する |
 | 詳細分析 | pprof | CPU・ヒープ・goroutine・待ちを分析する |
@@ -32,7 +32,7 @@
 - HTTP処理時間・件数を計測し、Goランタイム指標とpgxpool.Statの接続・待ち指標を公開する。
 - /metricsとヘルスチェックを用意する。pprofは詳細分析時に管理用ポートで有効にする。
 - 初期構成はGo 1.26.5、pgx v5.11.0、PostgreSQL 18.3を使う。Go ModulesとDockerイメージで版を固定する。
-- 計測・マイグレーション・DB統合テストの依存は、それぞれの実装時に版を固定する。
+- 計測の依存は実装時に版を固定する。
 
 ## 代償
 

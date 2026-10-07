@@ -20,6 +20,19 @@ curl -fsS http://localhost:8080/health/ready
 - DBはCompose内部から接続する。認証情報はローカル開発用。既存ボリュームのDB名・ユーザー・パスワードは環境変数だけでは変更されない。
 - 停止は`docker compose --env-file .env.local down`。DBデータはボリュームに保持する。
 
+## マイグレーション
+
+```sh
+docker compose --env-file .env.local run --build --rm migrate up
+```
+
+商品・カテゴリ・在庫のテーブルを作成する。適用済みの変更は再実行しない。
+
+直前の1件を取り消す場合は、`up`を`down`へ変更する。初期マイグレーションの取り消しは3テーブルとデータを削除する。
+
+- SQLは`migrations/`で管理し、ビルド時に実行ファイルへ埋め込む。
+- 商品と在庫の作成は同じトランザクションで行う。外部キーだけでは在庫行の存在は保証されない。
+
 ## テスト
 
 Go 1.26.5で実行する。
@@ -27,6 +40,8 @@ Go 1.26.5で実行する。
 ```sh
 go test -race ./...
 go vet ./...
+# Dockerが必要なDB統合テスト
+go test -race -tags=integration ./migrations
 ```
 
 ## 起動確認
