@@ -15,6 +15,7 @@ curl -fsS http://localhost:8080/health/ready
 
 - `/health/live`：APIの生存確認。正常時は200。
 - `/health/ready`：DB接続確認。正常時は200、接続不可は503。
+- Composeが`.env.local`を読み込み、Goはcaarlos0/envで型変換・必須チェックする。
 - 設定は`.env.local`で変更する。タイムアウトは`1s`・`250ms`形式。公開ポートを変えた場合はcurlのポートも合わせる。`.env.example`は共有用、`.env.local`はGit管理対象外。変更後はComposeの`up -d`で反映する。
 - DBはCompose内部から接続する。認証情報はローカル開発用。既存ボリュームのDB名・ユーザー・パスワードは環境変数だけでは変更されない。
 - 停止は`docker compose --env-file .env.local down`。DBデータはボリュームに保持する。

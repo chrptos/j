@@ -15,6 +15,7 @@
 | --- | --- | --- |
 | 言語・ビルド | Go・Go Modules | 標準ツールでビルドと依存管理を行う |
 | HTTP | net/http・ServeMux | 標準ライブラリで2つのAPIを実装する |
+| 環境設定 | caarlos0/env v11.4.1 | 環境変数の型変換・必須チェックを構造体にまとめる |
 | DB | PostgreSQL | SQL・実行計画・更新競合を実験する |
 | DBアクセス・プール | pgx/v5・pgxpool | SQLとトランザクションを明示し、接続待ちを観測する |
 | マイグレーション | golang-migrate/migrate | SQLファイルでスキーマ変更を再現する |
@@ -47,8 +48,12 @@
   > **人間**：OKです。進めてください。
 - 個別ライブラリの選定はPR #18でレビュー・マージ済み。
 
+- 環境設定
+  > **人間**：OKです。ではcaarlos0/envだけで良いです。
+
 ## Refs
 
+- [caarlos0/env](https://github.com/caarlos0/env)
 - [net/http](https://pkg.go.dev/net/http)
 - [pgx・pgxpool](https://pkg.go.dev/github.com/jackc/pgx/v5/pgxpool)
 - [golang-migrate](https://github.com/golang-migrate/migrate)

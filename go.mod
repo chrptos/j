@@ -2,7 +2,10 @@ module github.com/chrptos/j
 
 go 1.26.5
 
-require github.com/jackc/pgx/v5 v5.11.0
+require (
+	github.com/caarlos0/env/v11 v11.4.1
+	github.com/jackc/pgx/v5 v5.11.0
+)
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect

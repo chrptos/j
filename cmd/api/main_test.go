@@ -39,8 +39,8 @@ func TestConfigurationOverrides(t *testing.T) {
 func TestInvalidConfiguration(t *testing.T) {
 	for _, tc := range []struct{ key, value string }{
 		{"POSTGRES_PASSWORD", ""}, {"HTTP_PORT", "65536"}, {"DB_PORT", "secret"},
-		{"DB_MAX_CONNS", "0"}, {"DB_MIN_CONNS", "11"},
-		{"HTTP_READ_TIMEOUT", "0s"}, {"DB_LOCK_TIMEOUT", "500us"}, {"DB_SSLMODE", "secret"},
+		{"DB_MAX_CONNS", "0"}, {"DB_MAX_CONNS", "2147483648"}, {"DB_MIN_CONNS", "11"},
+		{"HTTP_READ_TIMEOUT", "0s"}, {"DB_CONNECT_TIMEOUT", "secret"}, {"DB_LOCK_TIMEOUT", "500us"}, {"DB_SSLMODE", "secret"},
 	} {
 		t.Run(tc.key, func(t *testing.T) {
 			exampleEnv(t)
@@ -53,5 +53,17 @@ func TestInvalidConfiguration(t *testing.T) {
 				t.Fatal("input value exposed")
 			}
 		})
+	}
+}
+
+func TestMissingConfiguration(t *testing.T) {
+	exampleEnv(t)
+	original := os.Getenv("DB_MAX_CONNS")
+	if err := os.Unsetenv("DB_MAX_CONNS"); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Setenv("DB_MAX_CONNS", original) })
+	if _, err := loadConfig(); err == nil {
+		t.Fatal("missing required variable accepted")
 	}
 }
