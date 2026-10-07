@@ -19,34 +19,35 @@ flowchart LR
 ```
 
 - API・DB・計測サービスはCompose、k6はホストの別プロセスで起動する。
-- APIはActuator・Micrometer、DBはpostgres_exporter・pg_stat_statementsで計測する。
+- APIはprometheus/client_golang、DBはpostgres_exporter・pg_stat_statementsで計測する。
 - ホスト・Docker VMの資源割当と、ソフトウェアの版を記録する。
 
 ### 環境条件
 
 | 項目 | 提案値 |
 | --- | --- |
-| API | 2 CPU、メモリ1 GiB、JVMヒープ最大512 MiB |
+| API | 2 CPU、メモリ1 GiB |
 | PostgreSQL | 2 CPU、メモリ2 GiB |
 | Prometheus | 0.5 CPU、メモリ512 MiB |
 | Grafana | 0.5 CPU、メモリ512 MiB |
 | postgres_exporter | 0.25 CPU、メモリ256 MiB |
-| HikariCP | 最大10接続、最小待機10接続 |
+| pgxpool | 最大10接続、最小0接続 |
 | Prometheus取得間隔 | 5秒 |
 
 | 設定 | 初期案 |
 | --- | --- |
-| HikariCP connectionTimeout | 1秒 |
+| pgxpool.Acquireのcontext期限 | 1秒 |
 | DB接続確立 | 2秒 |
 | PostgreSQL lock_timeout | 1秒 |
 | PostgreSQL statement_timeout | 3秒 |
-| JDBC通信の読み取り待ち | 5秒 |
+| DB操作のcontext期限（取得後） | 5秒 |
 | k6のHTTP待ち | 10秒 |
 
 
 - 資源制限の適用を確認し、比較試験では環境・設定を固定する。
 - DBタイムアウトはアプリ接続に適用する。statement_timeoutはSQL単位の制限とする。
-- 基準測定は全件アクセスログを無効にし、JFRによる詳細分析は別に行う。
+- 基準測定は全件アクセスログを無効にし、pprofによる詳細分析は別に行う。
+- プール取得は1秒、取得後のDB処理は5秒をcontextで制限する。接続確立はpgxのConnectTimeoutで制限する。
 - 在庫減算は自動再試行しない。
 
 ### データ準備
@@ -74,7 +75,7 @@ flowchart LR
 | 対象 | 記録する内容 |
 | --- | --- |
 | k6 | p95・p99、成功RPS、HTTPとコード別件数、タイムアウト・接続断、生成できなかった要求 |
-| API | リクエスト時間、処理件数、JVMヒープ、GC、スレッド、Hikariの使用・待機接続 |
+| API | リクエスト時間、処理件数、Goヒープ、GC、goroutine、pgxpoolの使用接続・取得待ち |
 | コンテナ | CPU、メモリ、再起動、CPU制限による抑制 |
 | DB | SQL呼出数・時間・読込、接続数、ロック待ち、デッドロック |
 
@@ -159,6 +160,8 @@ flowchart LR
 - 復旧時間は障害解除・再起動開始から、確認要求が5秒連続で成功するまでとする。確認減算も監査する。
 
 ## Refs
+
+- [Goの技術選定](../adr/0002-go-performance-learning-stack.md)
 
 - [k6のテスト種別](https://grafana.com/docs/k6/latest/testing-guides/api-load-testing/)
 - [k6の負荷モデル](https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/)
