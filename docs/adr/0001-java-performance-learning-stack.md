@@ -1,7 +1,7 @@
 # ADR-0001：Javaによる性能学習基盤の技術選定
 
 - 日付：2026-10-05
-- 状態：置換提案（[ADR-0002](0002-go-performance-learning-stack.md)）
+- 状態：置換済み（[ADR-0002](0002-go-performance-learning-stack.md)）
 - 関連Issue：#11
 
 ## 要件・制約
