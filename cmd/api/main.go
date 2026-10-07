@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/chrptos/j/internal/health"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,44 +22,31 @@ func main() {
 }
 
 func run() error {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		return errors.New("DATABASE_URL is required")
-	}
-	cfg, err := pgxpool.ParseConfig(dbURL)
+	cfg, err := loadConfig()
 	if err != nil {
-		return errors.New("invalid DATABASE_URL")
+		return err
 	}
-	cfg.MaxConns = 10
-	cfg.MinConns = 0
-	cfg.ConnConfig.ConnectTimeout = 2 * time.Second
-	cfg.ConnConfig.RuntimeParams["lock_timeout"] = "1s"
-	cfg.ConnConfig.RuntimeParams["statement_timeout"] = "3s"
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	pool, err := pgxpool.NewWithConfig(ctx, cfg)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg.DB)
 	if err != nil {
 		return errors.New("cannot initialize database pool")
 	}
 	defer pool.Close()
-	startup, cancel := context.WithTimeout(ctx, 5*time.Second)
+	startup, cancel := context.WithTimeout(ctx, cfg.Startup)
 	err = pool.Ping(startup)
 	cancel()
 	if err != nil {
 		return errors.New("database startup check failed")
 	}
-	addr := os.Getenv("HTTP_ADDR")
-	if addr == "" {
-		addr = ":8080"
-	}
 	server := &http.Server{
-		Addr: addr, Handler: health.Handler(pool),
-		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second,
-		WriteTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second,
+		Addr: cfg.Addr, Handler: health.Handler(pool, cfg.Health),
+		ReadHeaderTimeout: cfg.ReadHeader, ReadTimeout: cfg.Read,
+		WriteTimeout: cfg.Write, IdleTimeout: cfg.Idle,
 	}
 	done := make(chan error, 1)
 	go func() { done <- server.ListenAndServe() }()
-	slog.Info("API started", "addr", addr)
+	slog.Info("API started", "addr", cfg.Addr)
 	select {
 	case err := <-done:
 		if !errors.Is(err, http.ErrServerClosed) {
@@ -68,7 +54,7 @@ func run() error {
 		}
 		return nil
 	case <-ctx.Done():
-		shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdown, cancel := context.WithTimeout(context.Background(), cfg.Shutdown)
 		defer cancel()
 		if err := server.Shutdown(shutdown); err != nil {
 			_ = server.Close()

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 type pingFunc func(context.Context) error
@@ -17,7 +18,7 @@ func TestLiveDoesNotRequireDatabase(t *testing.T) {
 	handler := Handler(pingFunc(func(context.Context) error {
 		t.Fatal("liveness must not access database")
 		return nil
-	}))
+	}), time.Second)
 	res := httptest.NewRecorder()
 	handler.ServeHTTP(res, httptest.NewRequest(http.MethodGet, "/health/live", nil))
 	if res.Code != http.StatusOK {
@@ -43,7 +44,7 @@ func TestReady(t *testing.T) {
 					t.Fatal("missing deadline")
 				}
 				return tc.err
-			}))
+			}), time.Second)
 			res := httptest.NewRecorder()
 			handler.ServeHTTP(res, httptest.NewRequest(http.MethodGet, "/health/ready", nil))
 			if !called || res.Code != tc.status {
@@ -62,7 +63,7 @@ func TestReady(t *testing.T) {
 func TestReadyPropagatesCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	handler := Handler(pingFunc(func(ctx context.Context) error { return ctx.Err() }))
+	handler := Handler(pingFunc(func(ctx context.Context) error { return ctx.Err() }), time.Second)
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil).WithContext(ctx)
 	handler.ServeHTTP(res, req)

@@ -11,13 +11,13 @@ type Pinger interface {
 	Ping(context.Context) error
 }
 
-func Handler(db Pinger) http.Handler {
+func Handler(db Pinger, timeout time.Duration) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health/live", func(w http.ResponseWriter, r *http.Request) {
 		respond(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("GET /health/ready", func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 		if err := db.Ping(ctx); err != nil {
 			w.Header().Set("Content-Type", "application/problem+json")
