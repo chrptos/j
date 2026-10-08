@@ -1,7 +1,6 @@
 package problem
 
 import (
-	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -26,19 +25,6 @@ type Response struct {
 	Code     string       `json:"code"`
 	TraceID  string       `json:"traceId"`
 	Errors   []FieldError `json:"errors,omitempty"`
-}
-
-type requestInfo struct {
-	id    string
-	start time.Time
-}
-type requestKey struct{}
-
-func WithRequest(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		info := requestInfo{uuid.NewString(), time.Now()}
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), requestKey{}, info)))
-	})
 }
 
 func Write(w http.ResponseWriter, r *http.Request, status int, code, detail string, fields []FieldError) {
