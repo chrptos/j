@@ -1,0 +1,65 @@
+services:
+  api:
+    build: .
+    environment:
+      HTTP_PORT: ${HTTP_PORT:?set HTTP_PORT in .env.local}
+      HTTP_READ_HEADER_TIMEOUT: ${HTTP_READ_HEADER_TIMEOUT:?set HTTP_READ_HEADER_TIMEOUT in .env.local}
+      HTTP_READ_TIMEOUT: ${HTTP_READ_TIMEOUT:?set HTTP_READ_TIMEOUT in .env.local}
+      HTTP_WRITE_TIMEOUT: ${HTTP_WRITE_TIMEOUT:?set HTTP_WRITE_TIMEOUT in .env.local}
+      HTTP_IDLE_TIMEOUT: ${HTTP_IDLE_TIMEOUT:?set HTTP_IDLE_TIMEOUT in .env.local}
+      HTTP_SHUTDOWN_TIMEOUT: ${HTTP_SHUTDOWN_TIMEOUT:?set HTTP_SHUTDOWN_TIMEOUT in .env.local}
+      DB_HOST: ${DB_HOST:?set DB_HOST in .env.local}
+      DB_PORT: ${DB_PORT:?set DB_PORT in .env.local}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env.local}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env.local}
+      DB_SSLMODE: ${DB_SSLMODE:?set DB_SSLMODE in .env.local}
+      DB_MAX_CONNS: ${DB_MAX_CONNS:?set DB_MAX_CONNS in .env.local}
+      DB_MIN_CONNS: ${DB_MIN_CONNS:?set DB_MIN_CONNS in .env.local}
+      DB_ACQUIRE_TIMEOUT: ${DB_ACQUIRE_TIMEOUT:?set DB_ACQUIRE_TIMEOUT in .env.local}
+      DB_QUERY_TIMEOUT: ${DB_QUERY_TIMEOUT:?set DB_QUERY_TIMEOUT in .env.local}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:?set DB_CONNECT_TIMEOUT in .env.local}
+      DB_LOCK_TIMEOUT: ${DB_LOCK_TIMEOUT:?set DB_LOCK_TIMEOUT in .env.local}
+      DB_STATEMENT_TIMEOUT: ${DB_STATEMENT_TIMEOUT:?set DB_STATEMENT_TIMEOUT in .env.local}
+      DB_STARTUP_TIMEOUT: ${DB_STARTUP_TIMEOUT:?set DB_STARTUP_TIMEOUT in .env.local}
+      HEALTH_DB_TIMEOUT: ${HEALTH_DB_TIMEOUT:?set HEALTH_DB_TIMEOUT in .env.local}
+    ports:
+      - "${API_BIND_HOST:?}:${API_HOST_PORT:?}:${HTTP_PORT:?}"
+    cpus: ${API_CPUS:?}
+    mem_limit: ${API_MEMORY:?}
+    depends_on:
+      db:
+        condition: service_healthy
+    stop_grace_period: ${API_STOP_GRACE_PERIOD:?}
+  migrate:
+    build: .
+    profiles: ["tools"]
+    entrypoint: ["/migrate"]
+    environment:
+      DB_HOST: ${DB_HOST:?}
+      DB_PORT: ${DB_PORT:?}
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+      DB_SSLMODE: ${DB_SSLMODE:?}
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:18.3-bookworm@sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:?}
+    command: ["postgres", "-p", "${DB_PORT:?}"]
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    cpus: ${DB_CPUS:?}
+    mem_limit: ${DB_MEMORY:?}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p ${DB_PORT:?} -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: ${DB_HEALTH_INTERVAL:?}
+      timeout: ${DB_HEALTH_TIMEOUT:?}
+      retries: ${DB_HEALTH_RETRIES:?}
+volumes:
+  postgres_data:
