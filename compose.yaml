@@ -16,6 +16,8 @@ services:
       DB_SSLMODE: ${DB_SSLMODE:?set DB_SSLMODE in .env.local}
       DB_MAX_CONNS: ${DB_MAX_CONNS:?set DB_MAX_CONNS in .env.local}
       DB_MIN_CONNS: ${DB_MIN_CONNS:?set DB_MIN_CONNS in .env.local}
+      DB_ACQUIRE_TIMEOUT: ${DB_ACQUIRE_TIMEOUT:?set DB_ACQUIRE_TIMEOUT in .env.local}
+      DB_QUERY_TIMEOUT: ${DB_QUERY_TIMEOUT:?set DB_QUERY_TIMEOUT in .env.local}
       DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:?set DB_CONNECT_TIMEOUT in .env.local}
       DB_LOCK_TIMEOUT: ${DB_LOCK_TIMEOUT:?set DB_LOCK_TIMEOUT in .env.local}
       DB_STATEMENT_TIMEOUT: ${DB_STATEMENT_TIMEOUT:?set DB_STATEMENT_TIMEOUT in .env.local}

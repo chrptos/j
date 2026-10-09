@@ -3,6 +3,7 @@ package health
 import (
 	"context"
 	"encoding/json"
+	"github.com/chrptos/j/internal/problem"
 	"net/http"
 	"time"
 )
@@ -20,12 +21,7 @@ func Handler(db Pinger, timeout time.Duration) http.Handler {
 		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 		if err := db.Ping(ctx); err != nil {
-			w.Header().Set("Content-Type", "application/problem+json")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			_ = json.NewEncoder(w).Encode(map[string]any{
-				"type": "about:blank", "title": "Service Unavailable", "status": 503,
-				"detail": "データベースに接続できません", "code": "DATABASE_UNAVAILABLE",
-			})
+			problem.Write(w, r, 503, "DATABASE_UNAVAILABLE", "データベースに接続できません", nil)
 			return
 		}
 		respond(w, http.StatusOK, map[string]string{"status": "ok"})

@@ -23,6 +23,8 @@ type settings struct {
 	Idle       time.Duration `env:"HTTP_IDLE_TIMEOUT,required"`
 	Shutdown   time.Duration `env:"HTTP_SHUTDOWN_TIMEOUT,required"`
 	Startup    time.Duration `env:"DB_STARTUP_TIMEOUT,required"`
+	Acquire    time.Duration `env:"DB_ACQUIRE_TIMEOUT,required"`
+	Query      time.Duration `env:"DB_QUERY_TIMEOUT,required"`
 	Health     time.Duration `env:"HEALTH_DB_TIMEOUT,required"`
 	Connect    time.Duration `env:"DB_CONNECT_TIMEOUT,required"`
 	Lock       time.Duration `env:"DB_LOCK_TIMEOUT,required"`
@@ -63,7 +65,7 @@ func loadConfig() (config, error) {
 		"HTTP_READ_HEADER_TIMEOUT": c.ReadHeader, "HTTP_READ_TIMEOUT": c.Read,
 		"HTTP_WRITE_TIMEOUT": c.Write, "HTTP_IDLE_TIMEOUT": c.Idle,
 		"HTTP_SHUTDOWN_TIMEOUT": c.Shutdown, "DB_STARTUP_TIMEOUT": c.Startup,
-		"HEALTH_DB_TIMEOUT": c.Health, "DB_CONNECT_TIMEOUT": c.Connect,
+		"HEALTH_DB_TIMEOUT": c.Health, "DB_ACQUIRE_TIMEOUT": c.Acquire, "DB_QUERY_TIMEOUT": c.Query, "DB_CONNECT_TIMEOUT": c.Connect,
 		"DB_LOCK_TIMEOUT": c.Lock, "DB_STATEMENT_TIMEOUT": c.Statement,
 	} {
 		if duration < time.Millisecond {
