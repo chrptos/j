@@ -11,14 +11,23 @@ import (
 )
 
 func Handler(pool *pgxpool.Pool, healthTimeout, acquireTimeout, queryTimeout time.Duration) http.Handler {
-	return Router(health.Handler(pool, healthTimeout), product.Handler(product.Store{Pool: pool, AcquireTimeout: acquireTimeout, QueryTimeout: queryTimeout}))
+	store := product.Store{Pool: pool, AcquireTimeout: acquireTimeout, QueryTimeout: queryTimeout}
+	return Router(health.Handler(pool, healthTimeout), product.Handler(store), product.DecrementHandler(store))
 }
 
-func Router(health, products http.Handler) http.Handler {
+func Router(health, products, decrements http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/health/live", getOnly(health))
 	mux.Handle("/health/ready", getOnly(health))
 	mux.Handle("/products", getOnly(products))
+	mux.Handle("/products/{productId}/stock/decrements", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.Header().Set("Allow", "POST")
+			problem.Write(w, r, 405, "METHOD_NOT_ALLOWED", "許可されないHTTPメソッドです", nil)
+			return
+		}
+		decrements.ServeHTTP(w, r)
+	}))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		problem.Write(w, r, 404, "ENDPOINT_NOT_FOUND", "指定されたURLはありません", nil)
 	})

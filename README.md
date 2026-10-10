@@ -43,6 +43,17 @@ curl -fsS 'http://localhost:8080/products?keyword=Go&sort=price_asc&limit=20&off
 - 対象がない場合は`items: []`。試験データは別途投入する。
 - 接続取得・DB処理の上限は`DB_ACQUIRE_TIMEOUT`・`DB_QUERY_TIMEOUT`で設定する。
 
+## 在庫減算
+
+```sh
+curl -i -X POST 'http://localhost:8080/products/1/stock/decrements' \
+  -H 'Content-Type: application/json' -d '{"quantity":1}'
+```
+
+- 商品と在庫の試験データを投入して実行する。
+- 成功時は商品IDと更新時点の残数を返す。商品なしは404、在庫不足は409。
+- 再送は別の減算になるため、自動再試行しない。
+
 ## テスト
 
 Go 1.26.5で実行する。

@@ -14,7 +14,7 @@ func TestRouter(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"items":[]}`))
 	})
-	handler := Router(ok, ok)
+	handler := Router(ok, ok, ok)
 	for _, tc := range []struct {
 		method, path string
 		status       int
@@ -47,5 +47,35 @@ func TestRouter(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestDecrementRoute(t *testing.T) {
+	called := false
+	endpoint := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		if r.PathValue("productId") != "42" {
+			t.Fatal("productId missing")
+		}
+		w.WriteHeader(200)
+	})
+	handler := Router(endpoint, endpoint, endpoint)
+	res := httptest.NewRecorder()
+	handler.ServeHTTP(res, httptest.NewRequest("POST", "/products/42/stock/decrements", nil))
+	if !called || res.Code != 200 {
+		t.Fatalf("route status %d", res.Code)
+	}
+	called = false
+	res = httptest.NewRecorder()
+	handler.ServeHTTP(res, httptest.NewRequest("GET", "/products/42/stock/decrements", nil))
+	if called || res.Code != 405 || res.Header().Get("Allow") != "POST" {
+		t.Fatalf("method status %d", res.Code)
+	}
+	var body problem.Response
+	if err := json.Unmarshal(res.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body.Code != "METHOD_NOT_ALLOWED" || body.TraceID == "" {
+		t.Fatalf("body %+v", body)
 	}
 }
