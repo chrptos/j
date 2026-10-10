@@ -65,6 +65,8 @@ go vet ./...
 go test -race -tags=integration ./internal/product ./migrations
 ```
 
+APIのスモークテストは[実行手順](tests/smoke/README.md)を参照する。
+
 ## 起動確認
 
 ```sh
