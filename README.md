@@ -67,6 +67,10 @@ go test -race -tags=integration ./internal/product ./migrations
 
 APIのスモークテストは[実行手順](tests/smoke/README.md)を参照する。
 
+## 計測
+
+Prometheus・Grafanaの起動と指標は[計測手順](monitoring/README.md)を参照する。
+
 ## 起動確認
 
 ```sh
