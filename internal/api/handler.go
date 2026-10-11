@@ -7,15 +7,25 @@ import (
 	"github.com/chrptos/j/internal/health"
 	"github.com/chrptos/j/internal/problem"
 	"github.com/chrptos/j/internal/product"
+	"github.com/chrptos/j/internal/telemetry"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Handler(pool *pgxpool.Pool, healthTimeout, acquireTimeout, queryTimeout time.Duration) http.Handler {
 	store := product.Store{Pool: pool, AcquireTimeout: acquireTimeout, QueryTimeout: queryTimeout}
-	return Router(health.Handler(pool, healthTimeout), product.Handler(store), product.DecrementHandler(store))
+	metrics := telemetry.New(pool)
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", getOnly(promhttp.HandlerFor(metrics.Registry, promhttp.HandlerOpts{})))
+	mux.Handle("/", problem.WithRequest(metrics.Wrap(routes(health.Handler(pool, healthTimeout), product.Handler(store), product.DecrementHandler(store)))))
+	return mux
 }
 
 func Router(health, products, decrements http.Handler) http.Handler {
+	return problem.WithRequest(routes(health, products, decrements))
+}
+
+func routes(health, products, decrements http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/health/live", getOnly(health))
 	mux.Handle("/health/ready", getOnly(health))
@@ -31,7 +41,7 @@ func Router(health, products, decrements http.Handler) http.Handler {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		problem.Write(w, r, 404, "ENDPOINT_NOT_FOUND", "指定されたURLはありません", nil)
 	})
-	return problem.WithRequest(mux)
+	return mux
 }
 
 func getOnly(next http.Handler) http.Handler {
