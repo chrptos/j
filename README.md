@@ -71,6 +71,8 @@ APIのスモークテストは[実行手順](tests/smoke/README.md)を参照す�
 
 Prometheus・Grafanaの起動と指標は[計測手順](monitoring/README.md)を参照する。
 
+通常負荷テストのデータ準備と実行は[手順](tests/load/README.md)を参照する。
+
 ## 起動確認
 
 ```sh
